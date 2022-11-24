@@ -1,0 +1,95 @@
+---
+title: "FInal assignment group 4"
+author: "Daniel Sullivan"
+date: "2022-11-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(ggthemes)
+library(corrplot)
+library(reshape2)
+library(knitr)
+library(broom)
+library(caret)
+library(leaps)
+library(MASS)
+library(magrittr)
+library(betareg)
+library(pscl)
+library(gtsummary)
+library(nnet)
+library(readr)
+library(fastDummies)
+```
+
+
+## Abstract:
+
+Use 250 words or less to summarize your problem, methodology, and major outcomes.
+
+# Key words:
+
+Select a few key words (up to five) related to your work.
+
+# Introduction:
+
+Describe the background and motivation of your problem.
+
+# Literature review:
+
+Discuss how other researchers have addressed similar problems, what their achievements are, and what the advantage and drawbacks of each    reviewed
+ 
+approach are. Explain how your investigation is similar or different to the state-of-the- art. Please cite the relevant papers where appropriate.
+
+# Methodology:
+
+Discuss the key aspects of your problem, data set and regression model(s). Given that you are working on real-world data, explain at a high-level your exploratory data analysis, how you prepared the data for regression modeling, your process for building regression models, and your model selection.
+
+```{r}
+MHRD<-read.csv("https://raw.githubusercontent.com/TheSaltyCrab/DATA621_Final/main/Maternal%20Health%20Risk%20Data%20Set.csv")
+```
+```{r}
+
+head(MHRD,10)
+```
+
+```{r}
+MHRD<-MHRD%>% mutate(Risk_num = case_when(
+    str_detect(.$RiskLevel, "low risk") ~ "0",
+    str_detect(.$RiskLevel, "mid risk") ~ "1",
+    str_detect(.$RiskLevel, "high risk") ~ "2",
+    TRUE ~ as.character(.$RiskLevel)))
+MHRD$Risk_num <- as.numeric(MHRD$Risk_num)
+MHRD
+```
+
+```{r}
+corrplot(cor( select_if(MHRD, is.numeric), use = "complete.obs"), tl.col="black", tl.cex=0.6, order='AOE')
+```
+
+
+
+
+
+# Experimentation and Results:
+
+Describe the specifics of what you did (data exploration, data preparation, model building, model selection, model evaluation, etc.), and what you found out (statistical analyses, interpretation and discussion of the results, etc.).
+
+# Discussion and Conclusions:
+
+Conclude your findings, limitations, and suggest areas for future work.
+
+# References: 
+
+Be sure to cite all references used in the report (APA format).
+
+#   Appendices:
+#	Supplemental tables and/or figures.
+#	R statistical programming code.
