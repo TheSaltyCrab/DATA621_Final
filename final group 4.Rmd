@@ -1,6 +1,7 @@
 ---
 title: "FInal assignment group 4"
-author: "Daniel Sullivan"
+author: Deepika Dilip, Tora Mullings, Daniel Sullivan, Deepa Sharma, Bikram Barua,
+  Newman Okereafor
 date: "2022-11-24"
 output: html_document
 ---
@@ -58,7 +59,6 @@ MHRD<-read.csv("https://raw.githubusercontent.com/TheSaltyCrab/DATA621_Final/mai
 
 
 ```{r}
-
 head(MHRD,10)
 ```
 ### Data Attributes
@@ -81,8 +81,6 @@ MHRD<-MHRD%>% mutate(Risk_num = case_when(
     str_detect(.$RiskLevel, "mid risk") ~ "1",
     str_detect(.$RiskLevel, "high risk") ~ "2",
     TRUE ~ as.character(.$RiskLevel)))
-MHRD$Risk_num <- as.numeric(MHRD$Risk_num)
-MHRD
 ```
 
 ```{r}
