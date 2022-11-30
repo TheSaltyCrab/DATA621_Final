@@ -28,6 +28,7 @@ library(gtsummary)
 library(nnet)
 library(readr)
 library(fastDummies)
+library(ComplexHeatmap)
 ```
 
 
@@ -77,17 +78,22 @@ head(MHRD,5) %>% kable() %>% kableExtra::kable_styling()
 * `Risk Level`: Predicted Risk Intensity Level during pregnancy considering the previous attribute.
 
 ```{r}
-MHRD<-MHRD%>% mutate(Risk_num = case_when(
-    str_detect(.$RiskLevel, "low risk") ~ "0",
-    str_detect(.$RiskLevel, "mid risk") ~ "1",
-    str_detect(.$RiskLevel, "high risk") ~ "2",
-    TRUE ~ as.character(.$RiskLevel)))
+# MHRD<-MHRD%>% mutate(Risk_num = case_when(
+#     str_detect(.$RiskLevel, "low risk") ~ "0",
+#     str_detect(.$RiskLevel, "mid risk") ~ "1",
+#     str_detect(.$RiskLevel, "high risk") ~ "2",
+#     TRUE ~ as.character(.$RiskLevel)))
+MHRD = MHRD %>% mutate(RiskLevel = factor(RiskLevel, levels = c("low risk", "mid risk", "high risk")))
+
 ```
 
-We can start by making a correlation plot to compare continuous values. 
+We can start by making a correlation plot to compare continuous values. Age is positively correlated with systolic and diastolic blood pressure. 
+
 ```{r}
 corrplot(cor( select_if(MHRD, is.numeric), use = "complete.obs"), tl.col="black", tl.cex=0.6, order='AOE')
 ```
+
+The first step is visualizing data distribution by risk. Here we can see age is skewed, and the extremities of blood pressure and glucose levels are flagged as high risk.
 
 ```{r}
 lst.histogram = list()
@@ -102,6 +108,18 @@ ggpubr::ggarrange(plotlist = lst.histogram, ncol = 2, nrow = 3)
 ```{r}
 ggplot(aes(RiskLevel, fill = RiskLevel), data = MHRD) + geom_bar(stat = "count") + labs(x = "Risk Level", y = "Count") + scale_fill_manual(values = c("low risk" = "navyblue", "mid risk" = "grey", "high risk" = "red")) + labs(title = "Risk Level Counts")
 ```
+
+One approach we can take is implementing unsupervised clustering since many of the biomarkers are continuous. We can do this by forming a matrix of indicators and seeing if risk levels clusters. From this analysis, we see 6 distinct subgroups: 2 high risk, 3 low risk, and 1 mid risk (with some heterogeneity).
+
+```{r}
+mat.MHRD = MHRD %>% select(-c("RiskLevel")) %>% as.matrix()
+rownames(mat.MHRD) = rownames(MHRD)
+mat.MHRD = t(mat.MHRD)
+tree = hclust(dist(t(mat.MHRD), method = "euclidean"))
+mat.risk = MHRD %>% select(c("RiskLevel")) %>% as.matrix()
+Heatmap(t(mat.risk), cluster_columns  = tree, cluster_rows = F, col =c("low risk" = "navyblue", "mid risk" = "grey", "high risk" = "red"),  heatmap_height = unit(2, "cm"), column_split = 6)
+```
+
 
 
 # Experimentation and Results:
