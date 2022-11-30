@@ -37,7 +37,7 @@ Use 250 words or less to summarize your problem, methodology, and major outcomes
 
 # Key words:
 
-Select a few key words (up to five) related to your work.
+maternal health, clinical outcomes
 
 # Introduction:
 
@@ -59,22 +59,23 @@ MHRD<-read.csv("https://raw.githubusercontent.com/TheSaltyCrab/DATA621_Final/mai
 
 
 ```{r}
-head(MHRD,10)
+head(MHRD,5) %>% kable() %>% kableExtra::kable_styling()
 ```
+
 ### Data Attributes
 
-Age: Any ages in years when a women during pregnant.
+* `Age`: Any ages in years when a women during pregnant.
 
-SystolicBP: Upper value of Blood Pressure in mmHg, another significant attribute during pregnancy.
+* `SystolicBP`: Upper value of Blood Pressure in mmHg, another significant attribute during pregnancy.
 
-DiastolicBP: Lower value of Blood Pressure in mmHg, another significant attribute during pregnancy.
+* `DiastolicBP`: Lower value of Blood Pressure in mmHg, another significant attribute during pregnancy.
 
-BS: Blood glucose levels is in terms of a molar concentration, mmol/L.
+* `BS`: Blood glucose levels is in terms of a molar concentration, mmol/L.
 
-HeartRate: A normal resting heart rate in beats per minute.
+* `HeartRate`: A normal resting heart rate in beats per minute.
 
-Risk Level: Predicted Risk Intensity Level during pregnancy considering 
-the previous attribute.
+* `Risk Level`: Predicted Risk Intensity Level during pregnancy considering the previous attribute.
+
 ```{r}
 MHRD<-MHRD%>% mutate(Risk_num = case_when(
     str_detect(.$RiskLevel, "low risk") ~ "0",
@@ -83,12 +84,24 @@ MHRD<-MHRD%>% mutate(Risk_num = case_when(
     TRUE ~ as.character(.$RiskLevel)))
 ```
 
+We can start by making a correlation plot to compare continuous values. 
 ```{r}
 corrplot(cor( select_if(MHRD, is.numeric), use = "complete.obs"), tl.col="black", tl.cex=0.6, order='AOE')
 ```
 
+```{r}
+lst.histogram = list()
+for (i in names(MHRD)[1:6]) {
+  MHRD.sub = MHRD %>% select(i, "RiskLevel")
+  colnames(MHRD.sub) = c("value", "RiskLevel")
+  lst.histogram[[i]] = ggplot(aes(value, fill = RiskLevel), data = MHRD.sub) + geom_histogram() + labs(x = i, y = "Count") + scale_fill_manual(values = c("low risk" = "navyblue", "mid risk" = "grey", "high risk" = "red"))
+}
+ggpubr::ggarrange(plotlist = lst.histogram, ncol = 2, nrow = 3)
+```
 
-
+```{r}
+ggplot(aes(RiskLevel, fill = RiskLevel), data = MHRD) + geom_bar(stat = "count") + labs(x = "Risk Level", y = "Count") + scale_fill_manual(values = c("low risk" = "navyblue", "mid risk" = "grey", "high risk" = "red")) + labs(title = "Risk Level Counts")
+```
 
 
 # Experimentation and Results:
