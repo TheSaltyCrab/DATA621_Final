@@ -1,12 +1,13 @@
 ---
 title: "FInal assignment group 4"
-author: "Daniel Sullivan"
+author: Deepika Dilip, Tora Mullings, Daniel Sullivan, Deepa Sharma, Bikram Barua,
+  Newman Okereafor
 date: "2022-11-24"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = F, warning = F, message = F)
 ```
 
 ```{r}
@@ -27,6 +28,7 @@ library(gtsummary)
 library(nnet)
 library(readr)
 library(fastDummies)
+#library(complexHeatmap)
 ```
 
 
@@ -36,7 +38,7 @@ Use 250 words or less to summarize your problem, methodology, and major outcomes
 
 # Key words:
 
-Select a few key words (up to five) related to your work.
+maternal health, clinical outcomes
 
 # Introduction:
 
@@ -58,38 +60,124 @@ MHRD<-read.csv("https://raw.githubusercontent.com/TheSaltyCrab/DATA621_Final/mai
 
 
 ```{r}
-
-head(MHRD,10)
+head(MHRD,5) %>% kable() %>% kableExtra::kable_styling()
 ```
+
 ### Data Attributes
 
-Age: Any ages in years when a women during pregnant.
+* `Age`: Any ages in years when a women during pregnant.
 
-SystolicBP: Upper value of Blood Pressure in mmHg, another significant attribute during pregnancy.
+* `SystolicBP`: Upper value of Blood Pressure in mmHg, another significant attribute during pregnancy.
 
-DiastolicBP: Lower value of Blood Pressure in mmHg, another significant attribute during pregnancy.
+* `DiastolicBP`: Lower value of Blood Pressure in mmHg, another significant attribute during pregnancy.
 
-BS: Blood glucose levels is in terms of a molar concentration, mmol/L.
+* `BS`: Blood glucose levels is in terms of a molar concentration, mmol/L.
 
-HeartRate: A normal resting heart rate in beats per minute.
+* `HeartRate`: A normal resting heart rate in beats per minute.
 
-Risk Level: Predicted Risk Intensity Level during pregnancy considering 
-the previous attribute.
+* `Risk Level`: Predicted Risk Intensity Level during pregnancy considering the previous attribute.
+
 ```{r}
-MHRD<-MHRD%>% mutate(Risk_num = case_when(
-    str_detect(.$RiskLevel, "low risk") ~ "0",
-    str_detect(.$RiskLevel, "mid risk") ~ "1",
-    str_detect(.$RiskLevel, "high risk") ~ "2",
-    TRUE ~ as.character(.$RiskLevel)))
-MHRD$Risk_num <- as.numeric(MHRD$Risk_num)
-MHRD
+# MHRD<-MHRD%>% mutate(Risk_num = case_when(
+#     str_detect(.$RiskLevel, "low risk") ~ "0",
+#     str_detect(.$RiskLevel, "mid risk") ~ "1",
+#     str_detect(.$RiskLevel, "high risk") ~ "2",
+#     TRUE ~ as.character(.$RiskLevel)))
+MHRD = MHRD %>% mutate(RiskLevel = factor(RiskLevel, levels = c("low risk", "mid risk", "high risk")))
+
 ```
+
+We can start by making a correlation plot to compare continuous values. Age is positively correlated with systolic and diastolic blood pressure. 
 
 ```{r}
 corrplot(cor( select_if(MHRD, is.numeric), use = "complete.obs"), tl.col="black", tl.cex=0.6, order='AOE')
 ```
 
+The first step is visualizing data distribution by risk. Here we can see age is skewed, and the extremities of blood pressure and glucose levels are flagged as high risk.
 
+```{r}
+lst.histogram = list()
+for (i in names(MHRD)[1:6]) {
+  MHRD.sub = MHRD %>% select(i, "RiskLevel")
+  colnames(MHRD.sub) = c("value", "RiskLevel")
+  lst.histogram[[i]] = ggplot(aes(value, fill = RiskLevel), data = MHRD.sub) + geom_histogram() + labs(x = i, y = "Count") + scale_fill_manual(values = c("low risk" = "navyblue", "mid risk" = "grey", "high risk" = "red"))
+}
+ggpubr::ggarrange(plotlist = lst.histogram, ncol = 2, nrow = 3)
+```
+
+```{r}
+ggplot(aes(RiskLevel, fill = RiskLevel), data = MHRD) + geom_bar(stat = "count") + labs(x = "Risk Level", y = "Count") + scale_fill_manual(values = c("low risk" = "navyblue", "mid risk" = "grey", "high risk" = "red")) + labs(title = "Risk Level Counts")
+```
+
+One approach we can take is implementing unsupervised clustering since many of the biomarkers are continuous. We can do this by forming a matrix of indicators and seeing if risk levels clusters. From this analysis, we see 6 distinct subgroups: 2 high risk, 3 low risk, and 1 mid risk (with some heterogeneity).
+
+```{r}
+mat.MHRD = MHRD %>% select(-c("RiskLevel")) %>% as.matrix()
+rownames(mat.MHRD) = rownames(MHRD)
+mat.MHRD = t(mat.MHRD)
+tree = hclust(dist(t(mat.MHRD), method = "euclidean"))
+mat.risk = MHRD %>% select(c("RiskLevel")) %>% as.matrix()
+Heatmap(t(mat.risk), cluster_columns  = tree, cluster_rows = F, col =c("low risk" = "navyblue", "mid risk" = "grey", "high risk" = "red"),  heatmap_height = unit(2, "cm"), column_split = 6)
+```
+
+## multinomial model
+
+split data into test and training data
+
+```{r}
+set.seed(100)
+trainingRows <- sample(1:nrow(MHRD), 0.7*nrow(MHRD))
+training <- MHRD[trainingRows, ]
+test <- MHRD[-trainingRows, ]
+
+training
+```
+First we take a look into multinomial model assessing the accuracy of all predictors and pairing things down to try and improve the model. Starting with the every variable the multinomial model gives a miss error of 41% which is not great. from here we eliminated redundant as well as with low correlation values to the class level. This did not work out as planned. The first paired down model consisting of Age, Systolic blood pressure, and Blood sugar showed an even worse error rate around 44%. pared down more with blood sugar and systolic blood pressure the missclassification was around 48% and the only improvement was upon making a model solely with blood sugar when the error rate dropped to 40%. I beleive that this shows the multinomial regression clearly does not reflect or predict the data too well. One potential future for this type of model would be a boosted multinomial model to help improve accuracy of predictions. 
+
+
+```{r}
+mn_model<-multinom(RiskLevel ~ ., data=training)
+summary(mn_model)
+predicted_scores <- predict (mn_model, test, "probs")
+predicted_class <- predict (mn_model, test)
+table(predicted_class,test$RiskLevel)
+mean(as.character(predicted_class) != as.character(test$RiskLevel))
+
+
+```
+```{r}
+mn_model2<-multinom(RiskLevel ~ Age + SystolicBP + BS, data=training)
+summary(mn_model2)
+
+predicted_scores2 <- predict (mn_model2, test, "probs")
+predicted_class2 <- predict (mn_model2, test)
+table(predicted_class2,test$RiskLevel)
+
+mean(as.character(predicted_class2) != as.character(test$RiskLevel))
+
+```
+```{r}
+mn_model3<-multinom(RiskLevel ~ BS+SystolicBP, data=training)
+summary(mn_model3)
+
+predicted_scores3 <- predict (mn_model3, test, "probs")
+predicted_class3 <- predict (mn_model3, test)
+table(predicted_class3,test$RiskLevel)
+
+mean(as.character(predicted_class3) != as.character(test$RiskLevel))
+
+```
+```{r}
+mn_model4<-multinom(RiskLevel ~ BS, data=training)
+summary(mn_model4)
+
+predicted_scores4 <- predict (mn_model4, test, "probs")
+predicted_class4 <- predict (mn_model4, test)
+table(predicted_class4,test$RiskLevel)
+
+mean(as.character(predicted_class4) != as.character(test$RiskLevel))
+
+```
 
 
 
