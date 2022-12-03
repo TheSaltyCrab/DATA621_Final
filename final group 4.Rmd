@@ -28,7 +28,7 @@ library(gtsummary)
 library(nnet)
 library(readr)
 library(fastDummies)
-library(ComplexHeatmap)
+#library(complexHeatmap)
 ```
 
 
@@ -118,6 +118,65 @@ mat.MHRD = t(mat.MHRD)
 tree = hclust(dist(t(mat.MHRD), method = "euclidean"))
 mat.risk = MHRD %>% select(c("RiskLevel")) %>% as.matrix()
 Heatmap(t(mat.risk), cluster_columns  = tree, cluster_rows = F, col =c("low risk" = "navyblue", "mid risk" = "grey", "high risk" = "red"),  heatmap_height = unit(2, "cm"), column_split = 6)
+```
+
+## multinomial model
+
+split data into test and training data
+
+```{r}
+set.seed(100)
+trainingRows <- sample(1:nrow(MHRD), 0.7*nrow(MHRD))
+training <- MHRD[trainingRows, ]
+test <- MHRD[-trainingRows, ]
+
+training
+```
+First we take a look into multinomial model assessing the accuracy of all predictors and pairing things down to try and improve the model. Starting with the every variable the multinomial model gives a miss error of 41% which is not great. from here we eliminated redundant as well as with low correlation values to the class level. This did not work out as planned. The first paired down model consisting of Age, Systolic blood pressure, and Blood sugar showed an even worse error rate around 44%. pared down more with blood sugar and systolic blood pressure the missclassification was around 48% and the only improvement was upon making a model solely with blood sugar when the error rate dropped to 40%. I beleive that this shows the multinomial regression clearly does not reflect or predict the data too well. One potential future for this type of model would be a boosted multinomial model to help improve accuracy of predictions. 
+
+
+```{r}
+mn_model<-multinom(RiskLevel ~ ., data=training)
+summary(mn_model)
+predicted_scores <- predict (mn_model, test, "probs")
+predicted_class <- predict (mn_model, test)
+table(predicted_class,test$RiskLevel)
+mean(as.character(predicted_class) != as.character(test$RiskLevel))
+
+
+```
+```{r}
+mn_model2<-multinom(RiskLevel ~ Age + SystolicBP + BS, data=training)
+summary(mn_model2)
+
+predicted_scores2 <- predict (mn_model2, test, "probs")
+predicted_class2 <- predict (mn_model2, test)
+table(predicted_class2,test$RiskLevel)
+
+mean(as.character(predicted_class2) != as.character(test$RiskLevel))
+
+```
+```{r}
+mn_model3<-multinom(RiskLevel ~ BS+SystolicBP, data=training)
+summary(mn_model3)
+
+predicted_scores3 <- predict (mn_model3, test, "probs")
+predicted_class3 <- predict (mn_model3, test)
+table(predicted_class3,test$RiskLevel)
+
+mean(as.character(predicted_class3) != as.character(test$RiskLevel))
+
+```
+```{r}
+mn_model4<-multinom(RiskLevel ~ BS, data=training)
+summary(mn_model4)
+
+predicted_scores4 <- predict (mn_model4, test, "probs")
+predicted_class4 <- predict (mn_model4, test)
+table(predicted_class4,test$RiskLevel)
+
+mean(as.character(predicted_class4) != as.character(test$RiskLevel))
+
 ```
 
 
