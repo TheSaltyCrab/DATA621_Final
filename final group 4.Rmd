@@ -143,7 +143,7 @@ tree.groups = cutree(hclust(dist(t(mat.MHRD), method = "euclidean")), k = 6)
 
 mat.risk = MHRD %>% select(c("RiskLevel")) %>% as.matrix()
 
-#Heatmap(t(mat.risk), cluster_columns  = tree, cluster_rows = F, col =c("low risk" = "navyblue", "mid risk" = "grey", "high risk" = "red"),  #heatmap_height = unit(2, "cm"), column_split = 6)
+Heatmap(t(mat.risk), cluster_columns  = tree, cluster_rows = F, col =c("low risk" = "navyblue", "mid risk" = "grey", "high risk" = "red"),  heatmap_height = unit(2, "cm"), column_split = 6)
 ```
 
 ## Multinomial Regression 
@@ -185,10 +185,10 @@ data.frame(summary(mn_model)$coefficients/summary(mn_model)$standard.errors) %>%
 ```{r}
 predicted_scores <- predict (mn_model, test, "probs")
 predicted_class <- predict (mn_model, test)
-#table(predicted_class,test$RiskLevel)
+table(predicted_class,test$RiskLevel)
 #mean(as.character(predicted_class) != as.character(test$RiskLevel))
-multinomial model 1 (all predictors)
-````
+#multinomial model 1 (all predictors)
+```
 
 ```{r, echo=FALSE}
 mn_model<-multinom(RiskLevel ~ ., data=training)
@@ -215,12 +215,15 @@ data.frame(summary(mn_model2)$coefficients/summary(mn_model2)$standard.errors) %
 
 ### Confusion Matrix
 ```{r}
-multinomial model 2 (Age, systolic blood pressure, blood sugar)
+predicted_scores2 <- predict (mn_model2, test, "probs")
+predicted_class2 <- predict (mn_model2, test)
+table(predicted_class2,test$RiskLevel)
+
+```
+
 ```{r, echo=FALSE}
 mn_model2<-multinom(RiskLevel ~ Age + SystolicBP + BS, data=training)
 
-predicted_scores2 <- predict (mn_model2, test, "probs")
-predicted_class2 <- predict (mn_model2, test)
 # table(predicted_class2,test$RiskLevel)
 
 t(confusionMatrix(data = predicted_class2, reference = test$RiskLevel)$byClass) %>% knitr::kable()
@@ -243,6 +246,13 @@ data.frame(summary(mn_model3)$coefficients/summary(mn_model3)$standard.errors) %
 
 ### Confusion Matrix:
 ```{r}
+predicted_scores3 <- predict (mn_model3, test, "probs")
+predicted_class3 <- predict (mn_model3, test)
+table(predicted_class3,test$RiskLevel)
+
+```
+
+```{r}
 print(paste0("accuracy=",mean(as.character(predicted_class2) == as.character(test$RiskLevel))))
 print(paste0("AIC=",mn_model2$AIC))
 
@@ -251,10 +261,6 @@ multinomial model 3 (blood sugar, systolic blood pressure)
 ```{r, echo=FALSE}
 mn_model3<-multinom(RiskLevel ~ BS+SystolicBP, data=training)
 mn_model3$AIC
-
-
-predicted_scores3 <- predict (mn_model3, test, "probs")
-predicted_class3 <- predict (mn_model3, test)
 #table(predicted_class3,test$RiskLevel)
 t(confusionMatrix(data = predicted_class3, reference = test$RiskLevel)$byClass) %>% knitr::kable()
 ```
@@ -284,6 +290,12 @@ mn_model4<-multinom(RiskLevel ~ BS, data=training)
 ```{r}
 predicted_scores4 <- predict (mn_model4, test, "probs")
 predicted_class4 <- predict (mn_model4, test)
+table(predicted_class2,test$RiskLevel)
+
+```
+
+
+```{r}
 data.frame(summary(mn_model4)$coefficients/summary(mn_model4)$standard.errors) %>% kable() 
 t(confusionMatrix(data = predicted_class4, reference = test$RiskLevel)$byClass) %>% knitr::kable()
 ```
