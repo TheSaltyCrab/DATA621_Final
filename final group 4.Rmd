@@ -50,13 +50,25 @@ Maternal mortality is a leading public health issue in Bangladesh. Advances in p
 
 Here, we further explore mortality risk as a product of standard clinical indicators.  We obtained this dataset from the [UCI repository](https://archive.ics.uci.edu/ml/datasets/Maternal+Health+Risk+Data+Set). Data was aggregated from different sites, including rural and urban health centers.
 
+According to the WHO approximately 810 women die daily due to pregnancy complications (1). With such a high rate of death associated with childbirth it is important to maximize early interventions in high-risk pregnancies in order to monitor and start early intervention to save both the lives of the mother and child. Because of this need, pregnancy has been the focus of many data scientists research in developing many predictive algorithms to try and aid in identifying at risk pregnancies, best emergency interventions and various other aspects to help both mothers and doctors. For this reason, we want to look at identifying low mid and high-risk pregnancies through regression and machine learning methods in order to aid in identifying individuals who could be helped through early intervention.
+
+
+
+
+
 # Literature review:
 
-Previous studies on maternal health present the following key findings:
+At risk pregnancies remain a hot topic of research despite many advances in technology and a shrinking pregnancy/childbirth mortality rate. Predictive modeling has been implemented in several ways to aid in reducing pregnancy risks. There are three major groups of studies that have been performed. There were three major areas of research in these studies. The largest group predicted risks and complications involved with the pregnancy in specific scenarios (3)() as we are trying to asses with our data set. Many papers also covered predicting delivery methods as well as successful vaginal delivery (2). And the last big area of study looks at predicting in vitro fertilization success rates. Our analysis Is of the first group where we are trying to predict at risk pregnancies however the area where we differ from most of these studies is through scope. Most studies that are trying to predict complications do it in a much more specific scope. For example, some studies only predict preterm birth, or complications with vaginal birth while our approach just focuses on a generally high-risk birth and works off mostly basic vitals. Additionally, our analysis works through generalized linear models and progresses into simpler machine learning where as these other studies implement more in depth and domain specific methods. 
 
-* 
-* 
-* 
+
+1 Trends in maternal mortality 2000 to 2017: estimates by who, unicef, unfpa, world bank group and the united nations population division. https://www.unfpa.org/featured-publication/trends-maternal-mortality-2000-2017. Accessed 10 Jan 2021.
+
+2 Birara M, Gebrehiwot Y. Factors associated with success of vaginal birth after one caesarean section (vbac) at three teaching hospitals in addis ababa, ethiopia: a case control study. BMC Pregnancy Childbirth. 2013;13(1):1–6.
+
+3 Gao C, Osmundson S, Edwards DRV, Jackson GP, Malin BA, Chen Y. Deep learning predicts extreme preterm birth from electronic health records. J Biomed Inform. 2019;100:103334.
+
+4 Islam, Muhammed N, Mustafina, Sumaiya N, Mahmud, Tahsin, Khan, Nafiz I Machine learning to predict pregnancy outcomes: a systematic review, synthesizing framework and future research agenda
+
 
 
 # Methodology:
