@@ -86,6 +86,8 @@ head(MHRD,5) %>% kable()
 
 * `Risk Level`: Predicted Risk Intensity Level during pregnancy considering the previous attribute.
 
+### Data exploration
+
 ```{r}
 # MHRD<-MHRD%>% mutate(Risk_num = case_when(
 #     str_detect(.$RiskLevel, "low risk") ~ "0",
@@ -128,7 +130,8 @@ tree = hclust(dist(t(mat.MHRD), method = "euclidean"))
 tree.groups = cutree(hclust(dist(t(mat.MHRD), method = "euclidean")), k = 6)
 
 mat.risk = MHRD %>% select(c("RiskLevel")) %>% as.matrix()
-Heatmap(t(mat.risk), cluster_columns  = tree, cluster_rows = F, col =c("low risk" = "navyblue", "mid risk" = "grey", "high risk" = "red"),  heatmap_height = unit(2, "cm"), column_split = 6, name = "Risk")
+
+#Heatmap(t(mat.risk), cluster_columns  = tree, cluster_rows = F, col =c("low risk" = "navyblue", "mid risk" = "grey", "high risk" = "red"),  #heatmap_height = unit(2, "cm"), column_split = 6)
 ```
 
 ## Multinomial Regression 
@@ -141,6 +144,11 @@ trainingRows <- sample(1:nrow(MHRD), 0.7*nrow(MHRD))
 training <- MHRD[trainingRows, ]
 test <- MHRD[-trainingRows, ]
 ```
+
+
+# Experimentation and Results:
+
+Describe the specifics of what you did (data exploration, data preparation, model building, model selection, model evaluation, etc.), and what you found out (statistical analyses, interpretation and discussion of the results, etc.).
 
 ## XGBoost
 
@@ -167,6 +175,16 @@ predicted_scores <- predict (mn_model, test, "probs")
 predicted_class <- predict (mn_model, test)
 #table(predicted_class,test$RiskLevel)
 #mean(as.character(predicted_class) != as.character(test$RiskLevel))
+multinomial model 1 (all predictors)
+````
+
+```{r, echo=FALSE}
+mn_model<-multinom(RiskLevel ~ ., data=training)
+predicted_scores <- predict (mn_model, test, "probs")
+predicted_class <- predict (mn_model, test)
+table(predicted_class,test$RiskLevel)
+print(paste0("accuracy=",mean(as.character(predicted_class) == as.character(test$RiskLevel))))
+print(paste0("AIC=",mn_model$AIC))
 
 t(confusionMatrix(data = predicted_class, reference = test$RiskLevel)$byClass) %>% knitr::kable()
 
@@ -185,6 +203,9 @@ data.frame(summary(mn_model2)$coefficients/summary(mn_model2)$standard.errors) %
 
 ### Confusion Matrix
 ```{r}
+multinomial model 2 (Age, systolic blood pressure, blood sugar)
+```{r, echo=FALSE}
+mn_model2<-multinom(RiskLevel ~ Age + SystolicBP + BS, data=training)
 
 predicted_scores2 <- predict (mn_model2, test, "probs")
 predicted_class2 <- predict (mn_model2, test)
@@ -210,6 +231,15 @@ data.frame(summary(mn_model3)$coefficients/summary(mn_model3)$standard.errors) %
 
 ### Confusion Matrix:
 ```{r}
+print(paste0("accuracy=",mean(as.character(predicted_class2) == as.character(test$RiskLevel))))
+print(paste0("AIC=",mn_model2$AIC))
+
+```
+multinomial model 3 (blood sugar, systolic blood pressure)
+```{r, echo=FALSE}
+mn_model3<-multinom(RiskLevel ~ BS+SystolicBP, data=training)
+mn_model3$AIC
+
 
 predicted_scores3 <- predict (mn_model3, test, "probs")
 predicted_class3 <- predict (mn_model3, test)
@@ -225,6 +255,16 @@ t(confusionMatrix(data = predicted_class3, reference = test$RiskLevel)$byClass) 
 mn_model4<-multinom(RiskLevel ~ BS, data=training, trace = F)
 # summary(mn_model4)
 data.frame(summary(mn_model4)$coefficients/summary(mn_model4)$standard.errors) %>% kable() 
+
+
+print(paste0("accuracy=",mean(as.character(predicted_class3) == as.character(test$RiskLevel))))
+print(paste0("AIC=",mn_model3$AIC))
+
+```
+
+multinomial model 4 (blood sugar)
+```{r, echo=FALSE}
+mn_model4<-multinom(RiskLevel ~ BS, data=training)
 
 ```
 
@@ -313,9 +353,83 @@ vec.pred.high = c(pred.high > 0.5)
 # 
 # pred.high <- predict(xboost.high, dtest.high)
 
+print(paste0("accuracy=",mean(as.character(predicted_class4) == as.character(test$RiskLevel))))
+print(paste0("AIC=",mn_model4$AIC))
+
+```
+multinomial model 5 (blood sugar, heart rate, body temp, systolic blood pressure)
+
+```{r, echo=FALSE}
+mn_model5<-multinom(RiskLevel ~ BS+SystolicBP+ HeartRate+BodyTemp, data=training)
+
+
+predicted_scores5 <- predict (mn_model5, test, "probs")
+predicted_class5 <- predict (mn_model5, test)
+table(predicted_class5,test$RiskLevel)
+
+print(paste0("accuracy=",mean(as.character(predicted_class5) == as.character(test$RiskLevel))))
+print(paste0("AIC=",mn_model5$AIC))
+
+```
+
+Ordinal model 1 (all variables)
+
+```{r, echo=FALSE}
+O_model1<-polr(RiskLevel ~ ., data=training, Hess = TRUE)
+
+
+predicted_scores_ord1 <- predict (O_model1, test, "probs")
+predicted_class_ord1 <- predict (O_model1, test)
+table(predicted_class_ord1,test$RiskLevel)
+
+print(paste0("accuracy=",mean(as.character(predicted_class_ord1) == as.character(test$RiskLevel))))
+print(paste0("AIC=",O_model1$AIC))
+
+```
+Ordinal model 2 (blood sugar, systolic blood pressure, age)
+```{r, echo=FALSE}
+O_model2<-polr(RiskLevel ~ Age + SystolicBP + BS, data=training, Hess = TRUE)
+
+
+predicted_scores_ord2 <- predict (O_model2, test, "probs")
+predicted_class_ord2 <- predict (O_model2, test)
+table(predicted_class_ord2,test$RiskLevel)
+
+print(paste0("accuracy=",mean(as.character(predicted_class_ord2) == as.character(test$RiskLevel))))
+print(paste0("AIC=",O_model2$AIC))
+
+```
+Ordinal model 3 (blood sugar, systolic blood pressure)
+
+```{r, echo=FALSE}
+O_model3<-polr(RiskLevel ~ SystolicBP + BS, data=training, Hess = TRUE)
+
+
+predicted_scores_ord3 <- predict (O_model3, test, "probs")
+predicted_class_ord3 <- predict (O_model3, test)
+table(predicted_class_ord3,test$RiskLevel)
+
+print(paste0("accuracy=",mean(as.character(predicted_class_ord3) == as.character(test$RiskLevel))))
+print(paste0("AIC=",O_model3$AIC))
+
+```
+Ordinal model 4 (blood sugar)
+
+```{r, echo=FALSE}
+O_model4<-polr(RiskLevel ~ BS, data=training, Hess = TRUE)
+
+
+predicted_scores_ord4 <- predict (O_model4, test, "probs")
+predicted_class_ord4 <- predict (O_model4, test)
+table(predicted_class_ord4,test$RiskLevel)
+
+print(paste0("accuracy=",mean(as.character(predicted_class_ord4) == as.character(test$RiskLevel))))
+print(paste0("AIC=",O_model4$AIC))
+
 ```
 
 ### Predicting Medium Risk
+
 ```{r}
 
 pred.mid <- predict(xgb_train_mid, select(xboost.dat.test, -c("RiskLevel", "high_risk", "mid_risk")))
@@ -325,6 +439,9 @@ vec.pred.mid = c(pred.mid > 0.5)
 (confusionMatrix(data = factor(vec.pred.mid), reference = factor(xboost.dat.test$mid_risk))$byClass) %>% knitr::kable()
 ```
 
+### GLM model construction:
+
+we first took the approach of trying to predict the level of risk involved with pregnancy using multinomial and ordinal regression modeling. Starting with all variables and then paring down based on correlation to risk level as well as co-linearity in predictors. we selected first age, systolic blood pressure, and blood sugar level as our first set of restricted predicors followed by blood suger and systolic blood pressure for our second. Although we expected to improve the prediction rate by only keeping the most correlated predictors both model 2(systolicBP, Age, blood sugar) and model 3(systolicBP, blood sugar) in both multinomial and ordinal regressions showed a decrease in predictive accuracy when compared to models with all predictors. The only model in wich we saw the best improvment of our predictions was when we only included blood sugar as a predictor. Because assessing pregnancy risk is very important topic and could leaad to life saving interventions we want to strengthen this model and suggest more in depth analysis into this data via unsupervised learning methods. 
 
 # Discussion and Conclusions:
 
