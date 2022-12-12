@@ -62,7 +62,8 @@ According to the WHO approximately 810 women die daily due to pregnancy complica
 
 # Literature review:
 
-At risk pregnancies remain a vital research topic despite technological advances and a shrinking pregnancy/childbirth mortality rate. Predictive modeling has been implemented in several ways to reduce pregnancy risks. There are three major groups of studies that have been performed. The largest group predicted risks and complications involved with the pregnancy in specific scenarios (3)() as we are trying to asses with our data set. Many papers also covered predicting delivery methods and successful vaginal delivery (2).  The last significant area of study is predicting in vitro fertilization success rates. Our analysis concerns at-risk pregnancies using specific clinical indicators to predict risk. Most studies that predict complications do it in a much more specific scope. For example, some studies only predict preterm birth or vaginal birth complications while our approach focuses on high-risk births and uses basic vitals. Additionally, our analysis works through generalized linear models and progresses into simple machine learning models, whereas further studies implement more sophisticated models.
+At risk pregnancies remain a vital research topic despite technological advances and a shrinking pregnancy/childbirth mortality rate. Predictive modeling has been implemented in several ways to reduce pregnancy risks. There are three major groups of studies that have been performed. The largest group predicted risks and complications involved with the pregnancy in specific scenarios (3) as we are trying to asses with our data set. Many papers also covered predicting delivery methods and successful vaginal delivery (2).  The last significant area of study is predicting in vitro fertilization success rates. Our analysis concerns at-risk pregnancies using specific clinical indicators to predict risk. Most studies that predict complications do it in a much more specific scope. For example, some studies only predict preterm birth or vaginal birth complications while our approach focuses on high-risk births and uses basic vitals. Additionally, our analysis works through generalized linear models and progresses into simple machine learning models, whereas further studies implement more sophisticated models. There however was not a conses of how these studies approached this type of analysis. For example some took a similar approach to us using gradient boosting however building on it by adding a random forest and Adaboost ensemble(5). others took a range of approaches some examples include  univariate and multivariate approaches(6), as well as K means clusters, naive Bayes, logistic regression, and multiple types of neural networks.(4) 
+
 
 
 # Methodology:
@@ -275,28 +276,10 @@ as.tibble(t(confusionMatrix(data = predicted_class4, reference = test$RiskLevel)
 ```
 
 
-## Multinomial: model 5 (BS, HR, BodyTemp, systolic BP)
-
-```{r, echo=FALSE}
-mn_model5<-multinom(RiskLevel ~ BS+SystolicBP+ HeartRate+BodyTemp, data=training, trace = F)
-
-
-predicted_scores5 <- predict (mn_model5, test, "probs")
-predicted_class5 <- predict (mn_model5, test)
-# table(predicted_class5,test$RiskLevel)
-as.tibble(t(confusionMatrix(data = predicted_class5, reference = test$RiskLevel)$byClass), rownames = "metric") %>% filter(metric == "Sensitivity" | metric == "Pos Pred Value") %>% knitr::kable()
-
-
-lst.model.results[['mn_model5']][['accuracy']]  = mean(as.character(predicted_class5) == as.character(test$RiskLevel))
-lst.model.results[['mn_model5']][['AIC']] =mn_model5$AIC
-
-
-```
-
 ## XGBoost Model
 
 
-### Predicting High Risk
+### Predicting High Risk:
 
 ```{r}
 xboost.dat = training
@@ -384,7 +367,7 @@ vec.pred.mid = c(pred.mid > 0.5)
 ```
 
 
-## Ordinal model 1 (all variables)
+## Ordinal: Full Model
 
 ```{r, echo=FALSE}
 O_model1<-polr(RiskLevel ~ ., data=training, Hess = TRUE)
@@ -408,7 +391,7 @@ lst.model.results[['mn_model5']][['AIC']] =O_model1$AIC
 
 ```
 
-## Ordinal model 2 (blood sugar, systolic blood pressure, age)
+## Ordinal: Blood Sugar, Systolic Blood Pressure, Age
 ```{r, echo=FALSE}
 O_model2<-polr(RiskLevel ~ Age + SystolicBP + BS, data=training, Hess = TRUE)
 
@@ -429,7 +412,7 @@ lst.model.results[['ordinal_model2']][['AIC']] =O_model2$AIC
 
 ```
 
-## Ordinal model 3 (blood sugar, systolic blood pressure)
+## Ordinal: Blood Sugar, Systolic Blood Pressure
 
 ```{r, echo=FALSE}
 O_model3<-polr(RiskLevel ~ SystolicBP + BS, data=training, Hess = TRUE)
@@ -450,7 +433,7 @@ lst.model.results[['ordinal_model3']][['AIC']] =O_model3$AIC
 
 ```
 
-## Ordinal model 4 (blood sugar)
+## Ordinal: Blood Sugar
 
 ```{r, echo=FALSE}
 O_model4<-polr(RiskLevel ~ BS, data=training, Hess = TRUE)
@@ -473,7 +456,7 @@ lst.model.results[['ordinal_model4']][['AIC']] =O_model4$AIC
 
 ```
 
-### Summary of Results:
+## Summary of Results:
 
 ```{r}
 df.results = as.data.frame(lst.model.results) %>% melt() %>% mutate(var = ifelse(grepl("accuracy", variable), "accuracy", "AIC"))
@@ -485,14 +468,12 @@ dcast(data = df.results, formula = model ~ var, value.var = "value") %>% knitr::
 
 ### GLM model construction:
 
-We first tried to predict the level of risk involved with pregnancy using multinomial and ordinal regression modeling. Starting with all variables and then paring down based on correlation to risk level and co-linearity in predictors. We selected first age, systolic blood pressure, and blood sugar level as our first set of restricted predictors, followed by blood sugar and systolic blood pressure for our second. Although we expected to improve the prediction rate by only keeping the most correlated predictors, both model 2(systolicBP, Age, blood sugar) and model 3(systolicBP, blood sugar) in both multinomial and ordinal regressions showed a decrease in predictive accuracy when compared to models with all predictors. The only model in which we saw the best improvement in our predictions was when we only included blood sugar as a predictor. Because assessing pregnancy risk is a critical topic and could lead to life-saving interventions, we want to strengthen this model and suggest a more in-depth analysis of this data via unsupervised learning methods. 
-
+We first tried to predict the level of risk involved with pregnancy using multinomial and ordinal regression modeling. Starting with all variables and then paring down based on correlation to risk level and co-linearity in predictors. We selected first age, systolic blood pressure, and blood sugar level as our first set of restricted predictors, followed by blood sugar and systolic blood pressure for our second. Although we expected to improve the prediction rate by only keeping the most correlated predictors, both model 2(systolicBP, Age, blood sugar) and model 3(systolicBP, blood sugar) in both multinomial and ordinal regressions showed a decrease in predictive accuracy when compared to models with all predictors. The only model in which we saw the best improvement in our predictions was when we only included blood sugar as a predictor. Because assessing pregnancy risk is a critical topic and could lead to life-saving interventions, we want to strengthen this model and suggest a more in-depth analysis of this data via unsupervised learning methods.
 # Discussion and Conclusions:
 
 ## Model Interpretation:
 
-First, we look into the multinomial model assessing the accuracy of all predictors and pairing things down to try and improve the model. Starting with every variable, the multinomial model gives an error rate of 41%, which could be better. From here, we eliminated redundancy and low correlation values to the class level. The first pared-down model consisting of Age, Systolic blood pressure, and Blood sugar showed an even worse error rate of around 44%. A pared-down model with blood sugar and systolic blood pressure had a misclassification rate of about 48%. The only improvement was upon making a model solely with blood sugar when the error rate dropped to 40%. This shows that the multinomial regression clearly does not reflect or predict the data too well. One potential future for this type of model would be a boosted multinomial model to help improve the accuracy of predictions. 
-
+First, we look into the multinomial model assessing the accuracy of all predictors and pairing things down to try and improve the model. Starting with every variable, the multinomial model gives an error rate of 41%, which could be better. From here, we eliminated redundancy and low correlation values to the class level. The first pared-down model consisting of Age, Systolic blood pressure, and Blood sugar showed an even worse error rate of around 44%. A pared-down model with blood sugar and systolic blood pressure had a missclassification rate of about 48%. The only improvement was upon making a model solely with blood sugar when the error rate dropped to 40%. This shows that the multinational regression clearly does not reflect or predict the data too well. After the predictions of the supervised models proved unreliable we moved on to unsupervised methods, implementing gradient boosting. We had to break this into two models but found that the accuracy of prediction by doing this far exceeded those of any of our supervised models. each model achieving accuracy of ~98% as well as specificity greater then 90% drastically improving on all other results. Altogether combining these two models would result in a much better classification model.  
 
 # References: 
 
@@ -504,6 +485,10 @@ First, we look into the multinomial model assessing the accuracy of all predicto
 3 Gao C, Osmundson S, Edwards DRV, Jackson GP, Malin BA, Chen Y. Deep learning predicts extreme preterm birth from electronic health records. J Biomed Inform. 2019;100:103334.
 
 4 Islam, Muhammed N, Mustafina, Sumaiya N, Mahmud, Tahsin, Khan, Nafiz I Machine learning to predict pregnancy outcomes: a systematic review, synthesizing framework and future research agenda
+
+5 Lipschuetz M, Guedalia J, Rottenstreich A, Persky MN, Cohen SM, Kabiri D, Levin G, Yagel S, Unger R, Sompolinsky Y. Prediction of vaginal birth after cesarean deliveries using machine learning. Am J Obstet Gynecol. 2020;222(6):613–1.
+
+6 Li Y-X, Bai Z, Long D-J, Wang H-B, Wu Y-F, Reilly KH, Huang S-R, Ji Y-J. Predicting the success of vaginal birth after caesarean delivery: a retrospective cohort study in china. BMJ Open. 2019;9(5):027807.
 
 
 #   Appendices:
