@@ -42,7 +42,7 @@ library(xgboost)
 
 # Abstract:
 
-Maternal mortality is a leading public health issue in Bangladesh, with [173 deaths per 100k births](https://www.macrotrends.net/countries/BGD/bangladesh/maternal-mortality-rate). Yet with improvements in public health surveillance, a preventative responsive could be better informed with biomarker data and accurate risk predictions. For this project, we utilize multinomial models to quantify the contribution of biomarkers in predicting mortality risk. We start with multinomial regression, followed by oridinal regression and an xboost model.
+Maternal mortality is a leading public health issue in Bangladesh, with [173 deaths per 100k births](https://www.macrotrends.net/countries/BGD/bangladesh/maternal-mortality-rate). Yet with improvements in public health surveillance, a preventative responsive could be better informed with biomarker data and accurate risk predictions. For this project, we utilize multinomial models to quantify the contribution of biomarkers in predicting mortality risk. We start with multinomial regression, followed by ordinal regression and an xgboost model.
 
 # Key words:
 
@@ -54,7 +54,7 @@ Maternal mortality is a leading public health issue in Bangladesh. Advances in p
 
 Here, we further explore mortality risk as a product of standard clinical indicators.  We obtained this dataset from the [UCI repository](https://archive.ics.uci.edu/ml/datasets/Maternal+Health+Risk+Data+Set). Data was aggregated from different sites, including rural and urban health centers.
 
-According to the WHO approximately 810 women die daily due to pregnancy complications (1). With such a high rate of death associated with childbirth it is important to maximize early interventions in high-risk pregnancies in order to monitor and start early intervention to save both the lives of the mother and child. Because of this need, pregnancy has been the focus of many data scientists research in developing many predictive algorithms to try and aid in identifying at risk pregnancies, best emergency interventions and various other aspects to help both mothers and doctors. For this reason, we want to look at identifying low mid and high-risk pregnancies through regression and machine learning methods in order to aid in identifying individuals who could be helped through early intervention.
+According to the WHO approximately 810 women die daily due to pregnancy complications (1). With such a high rate of death associated with childbirth it is important to maximize early interventions in high-risk pregnancies in order to monitor and start early intervention to save both the lives of the mother and child. Because of this need, pregnancy has been the focus of many data scientists' research in developing many predictive algorithms to try and aid in identifying at risk pregnancies, best emergency interventions and various other aspects to help both mothers and doctors. For this reason, we want to look at identifying low-, mid-, and high-risk pregnancies through regression and machine learning methods in order to aid in identifying individuals who could be helped through early intervention.
 
 
 
@@ -62,7 +62,7 @@ According to the WHO approximately 810 women die daily due to pregnancy complica
 
 # Literature review:
 
-At risk pregnancies remain a vital research topic despite technological advances and a shrinking pregnancy/childbirth mortality rate. Predictive modeling has been implemented in several ways to reduce pregnancy risks. There are three major groups of studies that have been performed. The largest group predicted risks and complications involved with the pregnancy in specific scenarios (3) as we are trying to asses with our data set. Many papers also covered predicting delivery methods and successful vaginal delivery (2).  The last significant area of study is predicting in vitro fertilization success rates. Our analysis concerns at-risk pregnancies using specific clinical indicators to predict risk. Most studies that predict complications do it in a much more specific scope. For example, some studies only predict preterm birth or vaginal birth complications while our approach focuses on high-risk births and uses basic vitals. Additionally, our analysis works through generalized linear models and progresses into simple machine learning models, whereas further studies implement more sophisticated models. There however was not a conses of how these studies approached this type of analysis. For example some took a similar approach to us using gradient boosting however building on it by adding a random forest and Adaboost ensemble(5). others took a range of approaches some examples include  univariate and multivariate approaches(6), as well as K means clusters, naive Bayes, logistic regression, and multiple types of neural networks.(4) 
+At-risk pregnancies remain a vital research topic despite technological advances and a shrinking pregnancy/childbirth mortality rate. Predictive modeling has been implemented in several ways to reduce pregnancy risks. There are three major groups of studies that have been performed. The largest group predicted risks and complications involved with the pregnancy in specific scenarios (3) as we are trying to assess with our data set. Many papers also covered predicting delivery methods and successful vaginal delivery (2).  The last significant area of study is predicting in-vitro fertilization success rates. Our analysis concerns at-risk pregnancies using specific clinical indicators to predict risk. Most studies that predict complications do it in a much more specific scope. For example, some studies only predict preterm birth or vaginal birth complications while our approach focuses on high-risk births and uses basic vitals. Additionally, our analysis works through generalized linear models and progresses into simple machine learning models, whereas further studies implement more sophisticated models. However, there was not a consensus of how these studies approached this type of analysis. For example, some took a similar approach to us using gradient boosting however building on it by adding a random forest and Adaboost ensemble(5). Others took a range of approaches some examples include  univariate and multivariate approaches(6), as well as K-means clusters, naive Bayes, logistic regression, and multiple types of neural networks.(4) 
 
 
 
@@ -74,7 +74,7 @@ At risk pregnancies remain a vital research topic despite technological advances
 MHRD<-read.csv("https://raw.githubusercontent.com/TheSaltyCrab/DATA621_Final/main/Maternal%20Health%20Risk%20Data%20Set.csv")
 ```
 
-We started by creating exploratory plots to describe positive and negative correlations between predictors and our outcome (risk). We also wanted to make note of the nature of the relationship (e.g. linear or non-linear). Lastly, we used an unsuperivsed approach to classify patients and gain a better understanding of risk heterogeneity. 
+We started by creating exploratory plots to describe positive and negative correlations between predictors and our outcome (risk). We also wanted to make note of the nature of the relationship (e.g. linear or non-linear). Lastly, we used an unsupervised approach to classify patients and gain a better understanding of risk heterogeneity. 
 
 ## Data Attributes
 
@@ -99,7 +99,7 @@ First we partitioned the dataset using a 70-30 split. We initially fit a full mo
 
 ### XGBoost
 
-We also decided to try using a model that combined previous models with new ones, subsequently increasing accuracy. Therefore, we decided to fit the eXtreme Gradient Boosting algorthim from the `caret` package. In this case, however, we have to split our outcome: one model with predict high risk while the other will predict medium risk.
+We also decided to try using a model that combined previous models with new ones, subsequently increasing accuracy. Therefore, we decided to fit the eXtreme Gradient Boosting algorthim from the `caret` package. In this case, however, we have to split our outcome: one model will predict high-risk while the other will predict medium-risk.
 
 ### Ordinal Models
 
@@ -158,7 +158,7 @@ ggplot(aes(RiskLevel, fill = RiskLevel), data = MHRD) + geom_bar(stat = "count")
 
 ### Unsupervised Learning:
 
-One approach we can take is implementing unsupervised clustering since many of the biomarkers are continuous. We can do this by forming a matrix of indicators and seeing if risk levels clusters. From this analysis, we see 6 distinct subgroups: 2 high risk, 3 low risk, and 1 mid risk (with some heterogeneity).
+One approach we can take is implementing unsupervised clustering since many of the biomarkers are continuous. We can do this by forming a matrix of indicators and seeing if risk levels clusters. From this analysis, we see 6 distinct subgroups: 2 high-risk, 3 low-risk, and 1 mid- risk (with some heterogeneity).
 
 ```{r}
 mat.MHRD = MHRD %>% select(-c("RiskLevel")) %>% as.matrix()
@@ -473,7 +473,7 @@ We first tried to predict the level of risk involved with pregnancy using multin
 
 ## Model Interpretation:
 
-First, we look into the multinomial model assessing the accuracy of all predictors and pairing things down to try and improve the model. Starting with every variable, the multinomial model gives an error rate of 41%, which could be better. From here, we eliminated redundancy and low correlation values to the class level. The first pared-down model consisting of Age, Systolic blood pressure, and Blood sugar showed an even worse error rate of around 44%. A pared-down model with blood sugar and systolic blood pressure had a missclassification rate of about 48%. The only improvement was upon making a model solely with blood sugar when the error rate dropped to 40%. This shows that the multinational regression clearly does not reflect or predict the data too well. After the predictions of the supervised models proved unreliable we moved on to unsupervised methods, implementing gradient boosting. We had to break this into two models but found that the accuracy of prediction by doing this far exceeded those of any of our supervised models. each model achieving accuracy of ~98% as well as specificity greater then 90% drastically improving on all other results. Altogether combining these two models would result in a much better classification model.  
+First, we look into the multinomial model assessing the accuracy of all predictors and pairing things down to try and improve the model. Starting with every variable, the multinomial model gives an error rate of 41%, which could be better. From here, we eliminated redundancy and low correlation values to the class level. The first pared-down model consisting of Age, Systolic blood pressure, and Blood sugar showed an even worse error rate of around 44%. A pared-down model with blood sugar and systolic blood pressure had a missclassification rate of about 48%. The only improvement was upon making a model solely with blood sugar when the error rate dropped to 40%. This shows that the multinational regression clearly does not reflect or predict the data too well. After the predictions of the supervised models proved unreliable we moved on to unsupervised methods, implementing gradient boosting. We had to break this into two models but found that the accuracy of prediction by doing this far exceeded those of any of our supervised models. Each model achieving accuracy of ~98% as well as specificity greater then 90% drastically improving on all other results. Altogether combining these two models would result in a much better classification model.  
 
 # References: 
 
